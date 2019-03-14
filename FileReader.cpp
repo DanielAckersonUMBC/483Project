@@ -52,11 +52,17 @@
         size_t bytesToRead = 0;
         size_t bytesRead = 0;
         bool switchBuf = false;
+        char * insertPtr = out;
         
         // We have no more data to read.
         if( m_bytesStored <= 0 && m_eofReached )
             return -1;
 
+        // Give main thread time to ready the data if not already.
+        while( !m_bufReady[m_curBuf] && !m_eofReached )
+        {
+            usleep( 1000 );
+        }
         // We do not have that many bytes stored in our buffers so we will give what we can.
         // It will be up to the caller to loop until the desired count is reached. 
         if( bytesRequested > m_bytesStored )
@@ -67,21 +73,28 @@
         // Copy from buffers until we have filled the request.
         while( bytesRead < bytesRequested )
         {
+            printf( "Bytes read: %lu | bytesRequested: %lu\n", bytesRead, bytesRequested);
+            // Give main thread time to ready the data if not already.
+            while( !m_bufReady[m_curBuf] && !m_eofReached  )
+            {
+                usleep( 1000 );
+            }
             // Check to see if the request will overflow the buffer.
-            if( (m_readPtr + bytesRequested) < (m_readBufs[m_curBuf] + m_bufSize) )
+            if( (m_readPtr + (bytesRequested - bytesRead) ) > (m_readBufs[m_curBuf] + m_bufSize) )
             {
                 bytesToRead = (m_readBufs[m_curBuf] + m_bufSize) - m_readPtr;
                 switchBuf = true;
             }
             else
             {
-                bytesToRead = bytesRequested;
+                bytesToRead = bytesRequested - bytesRead;
             }
-            
+
             // Read as much as we can from current buffer.
-            memcpy( out, m_readPtr, bytesToRead );
+            memcpy( insertPtr, m_readPtr, bytesToRead );
             m_readPtr += bytesToRead; // Advance the read pointer.
             bytesRead += bytesToRead;
+            insertPtr += bytesToRead;
 
             if( switchBuf )
             {
@@ -118,7 +131,6 @@
 
     void * FileReader::mainThread( void * self )
     {
-        printf("On entry.\n");
         FileReader * thisPtr = (FileReader *) self;
         ssize_t retVal = 0;
 
@@ -142,7 +154,6 @@
             {
                 thisPtr->m_bytesStored += retVal;
                 thisPtr->m_bufReady[i] = true;
-                printf( "%lu: %s\n\n", thisPtr->m_bytesStored, thisPtr->m_readBufs[i]);
             }
         }
 
@@ -165,9 +176,15 @@
                         }
                         thisPtr->m_bytesStored += retVal;
                     }
+                    // Add to bytes stored how much was read into this buffer and signal it is ready to read.
+                    if( retVal > 0 )
+                    {
+                        thisPtr->m_bytesStored += retVal;
+                        thisPtr->m_bufReady[i] = true;
+                    }
                 }
-
             }
         } // while( m_running)
+        pthread_exit( NULL );
         return (void *) NULL;
     }
