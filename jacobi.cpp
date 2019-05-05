@@ -10,7 +10,7 @@ using namespace std;
 
 //****************************************************************************80
 
-double *dif2 ( int m, int n )
+double *dif2(int m, int n)
 
 //****************************************************************************80
 //
@@ -38,8 +38,8 @@ double *dif2 ( int m, int n )
 //
 //    A is a special case of the TRIS or tridiagonal scalar matrix.
 //
-//    A is integral, therefore det ( A ) is integral, and 
-//    det ( A ) * inverse ( A ) is integral.
+//    A is integral, therefore det(A) is integral, and 
+//    det(A) * inverse(A) is integral.
 //
 //    A is Toeplitz: constant along diagonals.
 //
@@ -71,8 +71,8 @@ double *dif2 ( int m, int n )
 //
 //    A has a Cholesky factorization A = L * L', with L lower bidiagonal.
 //
-//      L(I,I) =    sqrt ( (I+1) / I )
-//      L(I,I-1) = -sqrt ( (I-1) / I )
+//      L(I,I) =    sqrt((I+1) / I)
+//      L(I,I-1) = -sqrt((I-1) / I)
 //
 //    The eigenvalues are
 //
@@ -81,7 +81,7 @@ double *dif2 ( int m, int n )
 //
 //    The corresponding eigenvector X(I) has entries
 //
-//       X(I)(J) = sqrt(2/(N+1)) * sin ( I*J*PI/(N+1) ).
+//       X(I)(J) = sqrt(2/(N+1)) * sin(I*J*PI/(N+1)).
 //
 //    Simple linear systems:
 //
@@ -89,12 +89,12 @@ double *dif2 ( int m, int n )
 //
 //      x = (1,2,3,...,n-1,n), A*x=(0,0,0,...,0,n+1)
 //
-//    det ( A ) = N + 1.
+//    det(A) = N + 1.
 //
 //    The value of the determinant can be seen by induction,
 //    and expanding the determinant across the first row:
 //
-//      det ( A(N) ) = 2 * det ( A(N-1) ) - (-1) * (-1) * det ( A(N-2) )
+//      det(A(N)) = 2 * det(A(N-1)) - (-1) * (-1) * det(A(N-2))
 //                = 2 * N - (N-1)
 //                = N + 1
 //
@@ -146,21 +146,21 @@ double *dif2 ( int m, int n )
 //
 {
     double *a;
-    int i;
-    int j;
+    int col;
+    int row;
 
-    a = new double[m*n];
+    a = new double[m * n];
 
-    for ( j = 0; j < n; j++ ) {
-        for ( i = 0; i < m; i++ ) {
-            if ( j == i - 1 ) {
-                a[i+j*m] = -1.0;
-            } else if ( j == i ) {
-                a[i+j*m] = 2.0;
-            } else if ( j == i + 1 ) {
-                a[i+j*m] = -1.0;
+    for (row = 0; row < m; row++) {
+        for (col = 0; col < n; col++) {
+            if (row == col - 1) {
+                a[col + row * n] = -1.0;
+            } else if (row == col) {
+                a[col + row * n] = 2.0;
+            } else if (row == col + 1) {
+                a[col + row * n] = -1.0;
             } else {
-                a[i+j*m] = 0.0;
+                a[col + row * n] = 0.0;
             }
         }
     }
@@ -169,7 +169,7 @@ double *dif2 ( int m, int n )
 }
 //****************************************************************************80
 
-double *jacobi1 ( int n, double a[], double b[], double x[] )
+double *jacobi1(int n, double a[], double b[], double x[])
 
 //****************************************************************************80
 //
@@ -207,27 +207,27 @@ double *jacobi1 ( int n, double a[], double b[], double x[] )
 //    one step of the Jacobi iteration.
 //
 {
-    int i;
-    int j;
+    int col;
+    int row;
     double *x_new;
 
     x_new = new double[n];
 
-    for ( i = 0; i < n; i++ ) {
-        x_new[i] = b[i];
-        for ( j = 0; j < n; j++ ) {
-            if ( j != i ) {
-                x_new[i] = x_new[i] - a[i+j*n] * x[j];
+    for (row = 0; row < n; row++) {
+        x_new[row] = b[row];
+        for (col = 0; col < n; col++) {
+            if (row != col) {
+                x_new[row] -= a[col + row * n] * x[col];
             }
         }
-        x_new[i] = x_new[i] / a[i+i*n];
+        x_new[row] /= a[row + row * n];
     }
 
     return x_new;
 }
 //****************************************************************************80
 
-double *r8mat_mv_new ( int m, int n, double a[], double x[] )
+double *r8mat_mv_new(int m, int n, double a[], double x[])
 
 //****************************************************************************80
 //
@@ -265,16 +265,16 @@ double *r8mat_mv_new ( int m, int n, double a[], double x[] )
 //    Output, double R8MAT_MV_NEW[M], the product A*X.
 //
 {
-    int i;
-    int j;
+    int col;
+    int row;
     double *y;
 
     y = new double[m];
 
-    for ( i = 0; i < m; i++ ) {
-        y[i] = 0.0;
-        for ( j = 0; j < n; j++ ) {
-            y[i] = y[i] + a[i+j*m] * x[j];
+    for (row = 0; row < m; row++) {
+        y[row] = 0.0;
+        for (col = 0; col < n; col++) {
+            y[row] += a[col + row * n] * x[col];
         }
     }
 
@@ -282,7 +282,7 @@ double *r8mat_mv_new ( int m, int n, double a[], double x[] )
 }
 //****************************************************************************80
 
-double r8mat_residual_norm ( int m, int n, double a[], double x[], double b[] )
+double r8mat_residual_norm(int m, int n, double a[], double x[], double b[])
 
 //****************************************************************************80
 //
@@ -321,25 +321,25 @@ double r8mat_residual_norm ( int m, int n, double a[], double x[], double b[] )
 //    Output, double R8MAT_RESIDUAL_NORM, the norm of A*x-b.
 //
 {
-    int i;
-    int j;
+    int col;
+    int row;
     double *r;
     double r_norm;
 
     r = new double[m];
 
-    for ( i = 0; i < m; i++ ) {
-        r[i] = - b[i];
-        for ( j = 0; j < n; j++ ) {
-            r[i] = r[i] + a[i+j*m] * x[j];
+    for (row = 0; row < m; row++) {
+        r[row] = -b[row];
+        for (col = 0; col < n; col++) {
+            r[row] += a[col + row * n] * x[col];
         }
     }
 
     r_norm = 0.0;
-    for ( i = 0; i < m; i++ ) {
-        r_norm = r_norm + r[i] * r[i];
+    for (row = 0; row < n; row++) {
+        r_norm = r_norm + r[row] * r[row];
     }
-    r_norm = sqrt ( r_norm );
+    r_norm = sqrt(r_norm);
 
     delete [] r;
 
@@ -347,7 +347,7 @@ double r8mat_residual_norm ( int m, int n, double a[], double x[], double b[] )
 }
 //****************************************************************************80
 
-void r8vec_copy ( int n, double a1[], double a2[] )
+void r8vec_copy(int n, double a1[], double a2[])
 
 //****************************************************************************80
 //
@@ -382,14 +382,14 @@ void r8vec_copy ( int n, double a1[], double a2[] )
 {
     int i;
 
-    for ( i = 0; i < n; i++ ) {
+    for (i = 0; i < n; i++) {
         a2[i] = a1[i];
     }
     return;
 }
 //****************************************************************************80
 
-double r8vec_diff_norm_squared ( int n, double a[], double b[] )
+double r8vec_diff_norm_squared(int n, double a[], double b[])
 
 //****************************************************************************80
 //
@@ -403,7 +403,7 @@ double r8vec_diff_norm_squared ( int n, double a[], double b[] )
 //
 //    The square of the L2 norm of the difference of A and B is:
 //
-//      R8VEC_DIFF_NORM_SQUARED = sum ( 1 <= I <= N ) ( A[I] - B[I] )^2.
+//      R8VEC_DIFF_NORM_SQUARED = sum(1 <= I <= N) (A[I] - B[I])^2.
 //
 //  Licensing:
 //
@@ -431,15 +431,15 @@ double r8vec_diff_norm_squared ( int n, double a[], double b[] )
 
     value = 0.0;
 
-    for ( i = 0; i < n; i++ ) {
-        value = value + ( a[i] - b[i] ) * ( a[i] - b[i] );
+    for (i = 0; i < n; i++) {
+        value = value + (a[i] - b[i]) * (a[i] - b[i]);
     }
 
     return value;
 }
 //****************************************************************************80
 
-void r8vec_print ( int n, double a[], string title )
+void r8vec_print(int n, double a[], char const *title)
 
 //****************************************************************************80
 //
@@ -477,7 +477,7 @@ void r8vec_print ( int n, double a[], string title )
     cout << "\n";
     cout << title << "\n";
     cout << "\n";
-    for ( i = 0; i < n; i++ ) {
+    for (i = 0; i < n; i++) {
         cout << "  " << setw(8)  << i
             << ": " << setw(14) << a[i]  << "\n";
     }
@@ -486,7 +486,7 @@ void r8vec_print ( int n, double a[], string title )
 }
 //****************************************************************************80
 
-void timestamp ( )
+void timestamp()
 
 //****************************************************************************80
 //
@@ -522,10 +522,10 @@ void timestamp ( )
     size_t len;
     std::time_t now;
 
-    now = std::time ( NULL );
-    tm_ptr = std::localtime ( &now );
+    now = std::time(NULL);
+    tm_ptr = std::localtime(&now);
 
-    len = std::strftime ( time_buffer, TIME_SIZE, "%d %B %Y %I:%M:%S %p", tm_ptr );
+    len = std::strftime(time_buffer, TIME_SIZE, "%d %B %Y %I:%M:%S %p", tm_ptr);
 
     std::cout << time_buffer << "\n";
 
