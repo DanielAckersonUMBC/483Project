@@ -6,6 +6,7 @@
  */
 
 #include "ParallelJacobiSolver.hpp"
+#include "jacobi.hpp"
 
 #include <cstdlib>
 #include <cstring>
@@ -64,12 +65,10 @@ struct SolverThread {
     pthread_barrier_t *barrier;
     double const *a, *b;
     double *x, *x_new;
-    double threshold;
     int begin, end;
     int n;
     int id;
     bool volatile *quit;
-    bool volatile converged;
 };
 
 
@@ -84,32 +83,24 @@ static void swap_buffer(void **b1, void **b2)
 static void *JacobiRoutine(void *arg)
 {
     SolverThread *t = (SolverThread *) arg;
-    bool converged = true;
 
-    /* std::cout << "thread " << t->id << " is waiting" << std::endl; */
     pthread_barrier_wait(t->barrier); // wait for main thread
-    /* std::cout << "thread " << t->id << " is going" << std::endl; */
     while (! *t->quit) {
-        /* std::cout << "thread " << t->id << " is calculating range (" << t->begin << ", " << t->end << ")" << std::endl; */
         for (int i = t->begin; i < t->end; i++) {
             t->x_new[i] = t->b[i];
             for (int j = 0; j < t->n; j++) {
                 if (i != j)
-                    t->x_new[i] -= t->a[i + j * t->n] * t->x[j];
+                    t->x_new[i] -= t->a[j + i * t->n] * t->x[j];
             }
             t->x_new[i] /= t->a[i + i * t->n];
-            if (fabs(t->x_new[i] - t->x[i]) > t->threshold)
-                converged = false;
         }
 
-        t->converged = converged;
         swap_buffer((void **) &t->x, (void **) &t->x_new);
 
         pthread_barrier_wait(t->barrier); // signal main thread
         pthread_barrier_wait(t->barrier); // wait for main thread
     }
 
-    /* std::cout << "thread " << t->id << " is exiting" << std::endl; */
     return NULL;
 }
 
@@ -122,6 +113,7 @@ SolutionStats ParallelJacobiSolver::solve(int n, double const a[], double const 
     double *x_local = new double[n];
     double *x_new = new double[n];
     bool volatile quit = false;
+    timespec start, stop;
 
     pthread_barrier_init(&barrier, NULL, nthreads + 1);
     memcpy(x_local, x, n * sizeof (double));
@@ -142,41 +134,38 @@ SolutionStats ParallelJacobiSolver::solve(int n, double const a[], double const 
         t->x = x_local;
         t->x_new = x_new;
         t->n = n;
-        t->converged = false;
         t->quit = &quit;
-        t->threshold = threshold;
 
         pthread_create(&t->job, NULL, JacobiRoutine, t);
     }
 
-    /* std::cout << "threads created. GO!" << std::endl; */
-    for (int i = 0; i < max_iterations && !stats.solved; i++) {
+    clock_gettime(CLOCK_MONOTONIC, &start);
+    for (   stats.iterations = 0;
+            stats.iterations < max_iterations && !stats.solved; 
+            stats.iterations++) {
+
         pthread_barrier_wait(&barrier); // signal threads
-        /* std::cout << "main waiting: i = " << i << std::endl; */
         pthread_barrier_wait(&barrier); // wait for threads
-        /* std::cout << "main is checking convergence" << std::endl; */
-        swap_buffer((void **) &x_local, (void **) &x_new);
 
         /* check convergence */
-        stats.solved = true;
-        for (int th = 0; th < nthreads; th++) {
-            if (!threads[th].converged) {
-                stats.solved = false;
-                break;
-            }
-        }
-        stats.iterations = i;
+        stats.norm = sqrt(r8vec_diff_norm_squared(n, x_new, x_local));
+        if (stats.norm < threshold)
+            stats.solved = true;
+
+        swap_buffer((void **) &x_local, (void **) &x_new);
     }
+    clock_gettime(CLOCK_MONOTONIC, &stop);
     quit = true;
-    pthread_barrier_wait(&barrier);
+    pthread_barrier_wait(&barrier); // signal threads
 
     for (int i = 0; i < nthreads; i++)
         pthread_join(threads[i].job, NULL);
     
     pthread_barrier_destroy(&barrier);
 
-    if (stats.solved)
-        memcpy(x, x_local, n * sizeof (double));
+    memcpy(x, x_local, n * sizeof (double));
+    stats.time_sec = stop.tv_sec - start.tv_sec;
+    stats.time_sec += (stop.tv_nsec - start.tv_nsec) * 1e-9;
 
     delete[] x_new;
     delete[] x_local;

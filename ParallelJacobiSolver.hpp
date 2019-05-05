@@ -4,6 +4,7 @@ struct SolutionStats {
     bool solved;
     int iterations;
     double time_sec;
+    double norm;
 };
 
 class ParallelJacobiSolver {
@@ -12,7 +13,7 @@ class ParallelJacobiSolver {
     double threshold;
 
 public:
-    ParallelJacobiSolver(int threads, int max_iterations = 2000, double threshold = 1e-10);
+    ParallelJacobiSolver(int threads, int max_iterations = 10000, double threshold = 1e-10);
 
     void setThreads(int n);
     int getThreads();

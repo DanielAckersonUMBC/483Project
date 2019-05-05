@@ -323,25 +323,20 @@ double r8mat_residual_norm(int m, int n, double a[], double x[], double b[])
 {
     int col;
     int row;
-    double *r;
+    double r;
     double r_norm;
 
-    r = new double[m];
+    r_norm = 0.0;
 
     for (row = 0; row < m; row++) {
-        r[row] = -b[row];
+        r = -b[row];
         for (col = 0; col < n; col++) {
-            r[row] += a[col + row * n] * x[col];
+            r += a[col + row * n] * x[col];
         }
+        r_norm += r * r;
     }
 
-    r_norm = 0.0;
-    for (row = 0; row < n; row++) {
-        r_norm = r_norm + r[row] * r[row];
-    }
     r_norm = sqrt(r_norm);
-
-    delete [] r;
 
     return r_norm;
 }
@@ -428,11 +423,13 @@ double r8vec_diff_norm_squared(int n, double a[], double b[])
 {
     int i;
     double value;
+    double diff;
 
     value = 0.0;
 
     for (i = 0; i < n; i++) {
-        value = value + (a[i] - b[i]) * (a[i] - b[i]);
+        diff = a[i] - b[i];
+        value += diff * diff;
     }
 
     return value;
