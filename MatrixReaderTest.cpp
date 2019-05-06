@@ -68,15 +68,6 @@ int main(int argc, char *argv[])
 
     // Solve
     ParallelJacobiSolver pjs(nthreads, it_num, threshold);
-    for( int i = 0 ; i < matrix.n ; ++i )
-    {
-        printf("[");
-        for( int j = 0 ; j < matrix.n ; ++j )
-        {
-            printf("%lg, ", matrix.a[j + i * matrix.n]);
-        }
-        printf("]\n");
-    }
     SolutionStats solution = pjs.solve(matrix.n, matrix.a, matrix.b, matrix.x);
 
     std::cout << "Stopped after " << solution.iterations << " iterations" << std::endl;
