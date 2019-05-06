@@ -7,9 +7,9 @@ int main(int argc, char ** argv)
     srand(time(NULL));
 
     FILE * pFile = fopen("Matricies", "w");
-    for( int i = 0 ; i < 1 ; ++i )
+    for( int i = 0 ; i < 100 ; ++i )
     {
-        coordSparseMatrix myMatrix = genCoordMatrix(80, true, 800, 1000);
+        coordSparseMatrix myMatrix = genCoordMatrix(80, true, 1000, 1500);
         printf("Matrix %d generated.\n", i);
         myMatrix.toFile(pFile);
         printf("Matrix %d written.\n", i);

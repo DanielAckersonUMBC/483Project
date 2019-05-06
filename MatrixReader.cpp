@@ -23,12 +23,13 @@ MatrixReader::~MatrixReader()
 {
 }
 
-double * MatrixReader::getMatrix()
+jacobiMatrix MatrixReader::getMatrix()
 {
+    jacobiMatrix retMatrix;
     if( m_pFile == NULL )
     {
         fprintf( stderr, "Error: No file has been opened for MatrixReader.\n");
-        return NULL;
+        return retMatrix;
     }
     int retcode = 0;
     MM_typecode matcode;
@@ -40,7 +41,7 @@ double * MatrixReader::getMatrix()
     if( retcode != 0 )
     {
         fprintf(stdout, "End of file reached.\n");
-        return NULL;
+        return retMatrix;
     }
 
 
@@ -64,5 +65,9 @@ double * MatrixReader::getMatrix()
         matrix[col + row * n] = value;
     }
 
-    return matrix;
+    retMatrix.a = matrix;
+    retMatrix.n = n;
+    retMatrix.setSolution();
+
+    return retMatrix;
 }

@@ -20,7 +20,7 @@ struct jacobiMatrix
     double * x;
     double * x_exact;
 
-    void getSolution()
+    void setSolution()
     {
         //  Determine the right hand side vector B.
         x_exact = new double[n];
@@ -48,7 +48,7 @@ public:
 
     ~MatrixReader();
 
-    double * getMatrix();
+    jacobiMatrix getMatrix();
 private:
     char * m_filename;
     FILE * m_pFile;

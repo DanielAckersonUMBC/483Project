@@ -13,7 +13,7 @@ jacobi_parallel: jacobi_test_parallel.o ParallelJacobiSolver.o jacobi.o
 matrix_writer: MatrixWriter.o SparseMatrixGen.o mmio.o
 	$(CXX) -o $@ $(LDFLAGS) $^
 
-matrix_reader: MatrixReaderTest.o MatrixReader.o mmio.o
+matrix_reader: MatrixReaderTest.o MatrixReader.o mmio.o ParallelJacobiSolver.o jacobi.o
 	$(CXX) -o $@ $(LDFLAGS) $^
 
 %.o: %.cpp

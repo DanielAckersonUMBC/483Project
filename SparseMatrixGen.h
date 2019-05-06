@@ -37,7 +37,7 @@ struct coordSparseMatrix
     double * values;
     uint16_t * rows;
     uint16_t * cols;
-    uint16_t nonZero;
+    int64_t nonZero;
     uint32_t dimension;
     uint32_t size;
 
@@ -79,9 +79,9 @@ struct coordSparseMatrix
 
     ~coordSparseMatrix()
     {
-        free( values );
-        free( rows );
-        free( cols );
+        delete[] values;
+        delete[] rows;
+        delete[] cols;
     }
 };
 

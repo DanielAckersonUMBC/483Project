@@ -47,28 +47,21 @@ coordSparseMatrix genCoordMatrix(uint16_t percentZero, bool diagonal, int minDim
     // Randomly determine number of rows and columns.
     uint16_t numRows = rand() % (maxDim - minDim) + minDim;
     uint16_t numCols = numRows;
-    printf( "Dimensions: %ux%u\n", numRows, numCols);
-    uint16_t nonZero = 0;
+    int64_t nonZero = 0;
 
     // Preallocated large enough arrays.
-    int allocationSize = numRows + ((1.0 - (percentZero/100.0) + .03) * (numRows * numCols));
-    //int allocationSize = numRows * numCols; 
-    printf("Allocation: %d\n", allocationSize);
-    /*
+    //int allocationSize = numRows + ((1.0 - (percentZero/100.0) + .03) * (numRows * numCols));
+    int allocationSize = numRows * numCols;
     double * tempVals = new double[allocationSize];
     uint16_t * tempRows = new uint16_t[allocationSize];
     uint16_t * tempCols = new uint16_t[allocationSize]; 
-    */
-
-    double * tempVals = (double*)malloc(allocationSize * sizeof(double));
-    uint16_t * tempRows = (uint16_t *) malloc(allocationSize * sizeof(uint16_t));
-    uint16_t * tempCols = (uint16_t *) malloc(allocationSize * sizeof(uint16_t));
 
     if(tempVals == NULL || tempRows == NULL || tempCols == NULL )
     {
         printf( "Allocation failed!\n" );
         exit(1);
     }
+
     // Fill the matrix
     for(int row = 0 ; row < numRows ; ++row)
     {
@@ -76,7 +69,7 @@ coordSparseMatrix genCoordMatrix(uint16_t percentZero, bool diagonal, int minDim
         {
             // If a random number between 0-100 falls above percent zero value it will be made a random value.
             // Also if we are diagonalizing we check if it's on the diagonal and force it anyway.
-            if( rand() % 100 > percentZero || (diagonal && row == col))
+            if( (rand() % 100 > percentZero) || (diagonal && row == col))
             {
                 nonZero++;
 
@@ -97,14 +90,9 @@ coordSparseMatrix genCoordMatrix(uint16_t percentZero, bool diagonal, int minDim
     memcpy(rows, tempRows, sizeof(uint16_t) * nonZero);
     memcpy(cols, tempCols, sizeof(uint16_t) * nonZero);
 
-/*
     delete[] tempVals;
     delete[] tempRows;
     delete[] tempCols;
-*/
-    free( tempVals );
-    free( tempRows );
-    free( tempCols );
 
     // Initialize, populate, and return the sparse matrix object.
     coordSparseMatrix coordSparseMat;
