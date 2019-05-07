@@ -86,14 +86,15 @@ int main(int argc, char *argv[])
     std::cout << "Threshold = " << threshold << std::endl;
     std::cout << "Norm: ||Xi+1 - Xi|| = " <<  solution.norm << std::endl;
 
-    double *x_err = new double[n];
-    for (int i = 0; i < n; i++) {
-        x_err[i] = x[i] - x_exact[i];
-    }
+    /* double *x_err = new double[n]; */
+    /* for (int i = 0; i < n; i++) { */
+    /*     x_err[i] = x[i] - x_exact[i]; */
+    /* } */
 
     /* r8vec_print(n, x, "Solution"); */
     /* r8vec_print(n, x_exact, "True Solution"); */
     /* r8vec_print(n, x_err, "Solution error"); */
+    /* delete[] x_err; */
 
     delete[] a;
     delete[] b;

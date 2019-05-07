@@ -87,4 +87,6 @@ struct coordSparseMatrix
 
 sparseMatrix genMatrix(uint16_t percentZero, bool diagonal, int minDim, int maxDim);
 
-coordSparseMatrix genCoordMatrix(uint16_t percentZero, bool diagonal, int minDim, int maxDim);
+coordSparseMatrix genRandCoordMatrix(uint16_t percentZero, bool diagonal, int minDim, int maxDim, double minVal, double maxVal);
+
+coordSparseMatrix genCoordMatrix(uint16_t percentZero, bool diagonal, int dim, double minVal, double maxVal);

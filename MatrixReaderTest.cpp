@@ -60,29 +60,40 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    std::cout << "Using " << nthreads << " threads" << std::endl;
-    std::cout << "Using " << it_num << " max iterations" << std::endl;
+    /* std::cout << "Using " << nthreads << " threads" << std::endl; */
+    /* std::cout << "Using " << it_num << " max iterations" << std::endl; */
+
+    ParallelJacobiSolver pjs(nthreads, it_num, threshold);
 
     MatrixReader mtxReader(filename.c_str());
     jacobiMatrix matrix = mtxReader.getMatrix();
+    n = matrix.n; 
 
     // Solve
-    ParallelJacobiSolver pjs(nthreads, it_num, threshold);
     SolutionStats solution = pjs.solve(matrix.n, matrix.a, matrix.b, matrix.x);
 
-    std::cout << "Stopped after " << solution.iterations << " iterations" << std::endl;
-    std::cout << "Took " << solution.time_sec << " seconds" << std::endl;
-    std::cout << "Threshold = " << threshold << std::endl;
-    std::cout << "Norm: ||Xi+1 - Xi|| = " <<  solution.norm << std::endl;
+    /* std::cout << "Stopped after " << solution.iterations << " iterations" << std::endl; */
+    /* std::cout << "Took " << solution.time_sec << " seconds" << std::endl; */
+    /* std::cout << "Threshold = " << threshold << std::endl; */
+    /* std::cout << "Norm: ||Xi+1 - Xi|| = " <<  solution.norm << std::endl; */
 
-    double *x_err = new double[n];
-    for (int i = 0; i < n; i++) {
-        x_err[i] = matrix.x[i] - matrix.x_exact[i];
-    }
+    std::cout
+            <<  solution.time_sec <<
+        ',' <<  solution.iterations <<
+        ',' <<  solution.norm <<
+        ',' <<  n <<
+        ',' <<  nthreads <<
+        ',' <<  threshold <<
+        std::endl;
 
-    r8vec_print(n, matrix.x, "Solution");
-    r8vec_print(n, matrix.x_exact, "True Solution");
-    r8vec_print(n, x_err, "Solution error");
+    /* double *x_err = new double[n]; */
+    /* for (int i = 0; i < n; i++) { */
+    /*     x_err[i] = matrix.x[i] - matrix.x_exact[i]; */
+    /* } */
+
+    /* r8vec_print(n, matrix.x, "Solution"); */
+    /* r8vec_print(n, matrix.x_exact, "True Solution"); */
+    /* r8vec_print(n, x_err, "Solution error"); */
 
     return ret;
 }

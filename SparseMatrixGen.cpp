@@ -1,5 +1,6 @@
 #include "SparseMatrixGen.h"
 #include "stdlib.h"
+#include "math.h"
 
 sparseMatrix genMatrix(uint16_t percentZero, bool diagonal, int minDim, int maxDim)
 {
@@ -42,7 +43,7 @@ sparseMatrix genMatrix(uint16_t percentZero, bool diagonal, int minDim, int maxD
     return sparseMat;
 }
 
-coordSparseMatrix genCoordMatrix(uint16_t percentZero, bool diagonal, int minDim, int maxDim)
+coordSparseMatrix genRandCoordMatrix(uint16_t percentZero, bool diagonal, int minDim, int maxDim, double minVal, double maxVal)
 {
     // Randomly determine number of rows and columns.
     uint16_t numRows = rand() % (maxDim - minDim) + minDim;
@@ -56,6 +57,8 @@ coordSparseMatrix genCoordMatrix(uint16_t percentZero, bool diagonal, int minDim
     uint16_t * tempRows = new uint16_t[allocationSize];
     uint16_t * tempCols = new uint16_t[allocationSize]; 
 
+    double valRange = fabs(maxVal - minVal);
+
     if(tempVals == NULL || tempRows == NULL || tempCols == NULL )
     {
         printf( "Allocation failed!\n" );
@@ -65,6 +68,8 @@ coordSparseMatrix genCoordMatrix(uint16_t percentZero, bool diagonal, int minDim
     // Fill the matrix
     for(int row = 0 ; row < numRows ; ++row)
     {
+        double abs_sum = 0;
+        int diag_i = 0;
         for( int col = 0 ; col < numCols ; ++col )
         {
             // If a random number between 0-100 falls above percent zero value it will be made a random value.
@@ -74,10 +79,99 @@ coordSparseMatrix genCoordMatrix(uint16_t percentZero, bool diagonal, int minDim
                 nonZero++;
 
                 // Add the value to the matrix.
-                tempVals[nonZero - 1] = (double)rand() / (double)RAND_MAX;
                 tempRows[nonZero - 1] = row;
                 tempCols[nonZero - 1] = col;
+                tempVals[nonZero - 1] = drand48() * valRange + minVal;
+
+                if(row == col)
+                    diag_i = nonZero - 1;
+                else
+                    abs_sum += fabs(tempVals[nonZero - 1]);
+                    
             }
+        }
+        if(diagonal)
+        {
+            tempVals[diag_i] = drand48() * valRange * 0.2 + abs_sum;
+        }
+    }
+    double * values = new double[nonZero];
+    uint16_t * rows = new uint16_t[nonZero];
+    uint16_t * cols = new uint16_t[nonZero];
+
+
+    // Copy over necessary values.
+    memcpy(values, tempVals, sizeof(double) * nonZero);
+    memcpy(rows, tempRows, sizeof(uint16_t) * nonZero);
+    memcpy(cols, tempCols, sizeof(uint16_t) * nonZero);
+
+    delete[] tempVals;
+    delete[] tempRows;
+    delete[] tempCols;
+
+    // Initialize, populate, and return the sparse matrix object.
+    coordSparseMatrix coordSparseMat;
+
+    coordSparseMat.values = values;
+    coordSparseMat.rows = rows;
+    coordSparseMat.cols = cols;
+    coordSparseMat.nonZero = nonZero;
+    coordSparseMat.dimension = numRows;
+
+    return coordSparseMat;
+}
+
+
+coordSparseMatrix genCoordMatrix(uint16_t percentZero, bool diagonal, int dim, double minVal, double maxVal)
+{
+    // Randomly determine number of rows and columns.
+    uint16_t numRows = dim;
+    uint16_t numCols = dim;
+    int64_t nonZero = 0;
+
+    // Preallocated large enough arrays.
+    //int allocationSize = numRows + ((1.0 - (percentZero/100.0) + .03) * (numRows * numCols));
+    int allocationSize = numRows * numCols;
+    double * tempVals = new double[allocationSize];
+    uint16_t * tempRows = new uint16_t[allocationSize];
+    uint16_t * tempCols = new uint16_t[allocationSize]; 
+
+    double valRange = fabs(maxVal - minVal);
+
+    if(tempVals == NULL || tempRows == NULL || tempCols == NULL )
+    {
+        printf( "Allocation failed!\n" );
+        exit(1);
+    }
+
+    // Fill the matrix
+    for(int row = 0 ; row < numRows ; ++row)
+    {
+        double abs_sum = 0;
+        int diag_i = 0;
+        for( int col = 0 ; col < numCols ; ++col )
+        {
+            // If a random number between 0-100 falls above percent zero value it will be made a random value.
+            // Also if we are diagonalizing we check if it's on the diagonal and force it anyway.
+            if( (rand() % 100 > percentZero) || (diagonal && row == col))
+            {
+                nonZero++;
+
+                // Add the value to the matrix.
+                tempRows[nonZero - 1] = row;
+                tempCols[nonZero - 1] = col;
+                tempVals[nonZero - 1] = drand48() * valRange + minVal;
+
+                if(row == col)
+                    diag_i = nonZero - 1;
+                else
+                    abs_sum += fabs(tempVals[nonZero - 1]);
+                    
+            }
+        }
+        if(diagonal)
+        {
+            tempVals[diag_i] = drand48() * valRange * 0.2 + abs_sum;
         }
     }
     double * values = new double[nonZero];
