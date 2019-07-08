@@ -108,7 +108,7 @@ static void *JacobiRoutine(void *arg)
 SolutionStats ParallelJacobiSolver::solve(int n, double const a[], double const b[], double x[])
 {
     SolutionStats stats;
-    SolverThread threads[n];
+    SolverThread threads[nthreads];
     pthread_barrier_t barrier;
     double *x_local = new double[n];
     double *x_new = new double[n];
